@@ -24,7 +24,7 @@ class Customer(db.Model):
   email = db.Column(db.String(320))
   phone = db.Column(db.String(15))
   orders = db.relationship("Order", backref="customer")
-  # carts = relationship('Cart', back_populates='customer')
+  carts = relationship('Cart', back_populates='customer')
 
 # many to many relationship
 order_product = db.Table("Order_Product",
@@ -60,21 +60,21 @@ class CustomerAccount(db.Model):
   customer_id = db.Column(db.Integer,db.ForeignKey("Customers.id"))
   customer = db.relationship("Customer", backref="Customer_account", uselist=False)
 
-# class Cart(db.Model):
-#   __tablename__ = 'Carts'
-#   id = db.Column(db.Integer, primary_key=True)
-#   customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'), nullable=False)
-#   items = relationship('CartItem', back_populates='cart')
-#   customer = relationship('Customer', back_populates='carts')
+class Cart(db.Model):
+  __tablename__ = 'Carts'
+  id = db.Column(db.Integer, primary_key=True)
+  customer_id = db.Column(db.Integer, db.ForeignKey('Customers.id'), nullable=False)
+  items = relationship('CartItem', back_populates='cart')
+  customer = relationship('Customer', back_populates='carts')
 
-# class CartItem(db.Model):
-#   __tablename__ = 'Cart_Items'
-#   id = db.Column(db.Integer, primary_key=True)
-#   cart_id = db.Column(db.Integer, db.ForeignKey('carts.id'), nullable=False)
-#   product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
-#   quantity = db.Column(db.Integer, nullable=False)
-#   cart = relationship('Cart', back_populates='items')
-#   product = relationship('Product')
+class CartItem(db.Model):
+  __tablename__ = 'Cart_Items'
+  id = db.Column(db.Integer, primary_key=True)
+  cart_id = db.Column(db.Integer, db.ForeignKey('Carts.id'), nullable=False)
+  product_id = db.Column(db.Integer, db.ForeignKey('Products.id'), nullable=False)
+  quantity = db.Column(db.Integer, nullable=False)
+  cart = relationship('Cart', back_populates='items')
+  product = relationship('Product')
 #------------------------------------------------------------------------------------------------------
 #                                        Schema Tables
 
