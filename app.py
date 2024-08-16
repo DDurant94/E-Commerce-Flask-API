@@ -9,7 +9,7 @@ from flask_cors import CORS
 # (myvenvalch)
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = 'mysql+mysqlconnector://root:password@localhost/e_commerce_db'
+app.config["SQLALCHEMY_DATABASE_URI"] = 'mysql+mysqlconnector://root:$85PeopleDead94!@localhost/e_commerce_db'
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 # giving acsess to our db from a website 'CORS'
@@ -455,8 +455,7 @@ def add_to_cart():
 
   cart = Cart(customer_id=cart_data["customer_id"])
   db.session.add(cart)
-  db.session.commit()  # Commit to generate the cart_id
-
+  db.session.commit()
   for item_data in cart_data["items"]:
       product_id = item_data["product_id"]
       quantity = item_data["quantity"]
@@ -464,8 +463,8 @@ def add_to_cart():
       
       cart_item = CartItem(cart_id=cart.id, product_id=product.id, quantity=quantity)
       db.session.add(cart_item)
-
   db.session.commit()
+  return jsonify({"message": "Products added successfully"}),201
 
 @app.route("/cart/<id>", methods=["GET"])
 def get_cart(id):
@@ -475,7 +474,6 @@ def get_cart(id):
       'customer_id': cart.customer_id,
       'items': []
   }
-
   for item in cart.items:
       item_data = {
           'product_id': item.product.id,
@@ -486,6 +484,104 @@ def get_cart(id):
       cart_data['items'].append(item_data)
 
   return jsonify(cart_data)
+
+@app.route("/carts", methods=["GET"])
+def get_all_carts():
+    carts = Cart.query.all()
+    all_carts = []
+    for cart in carts:
+        cart_data = {
+            'cart_id': cart.id,
+            'customer_id': cart.customer_id,
+            'items': []
+        }
+        for item in cart.items:
+            item_data = {
+                'product_id': item.product.id,
+                'name': item.product.name,
+                'price': item.product.price,
+                'quantity': item.quantity
+            }
+            cart_data['items'].append(item_data)
+        all_carts.append(cart_data)
+
+    return jsonify(all_carts)
+  
+@app.route("/carts_by_customer", methods=["GET"])
+def get_carts_by_customer():
+  carts = Cart.query.all()
+  customers_carts = {}
+  for cart in carts:
+    customer_id = cart.customer_id
+    if customer_id not in customers_carts:
+      customers_carts[customer_id] = []
+    cart_data = {
+      'cart_id': cart.id,
+      'customer_id': cart.customer_id,
+      'items': []
+  }
+    for item in cart.items:
+      item_data = {
+      'product_id': item.product.id,
+      'name': item.product.name,
+      'price': item.product.price,
+      'quantity': item.quantity
+    }
+    cart_data['items'].append(item_data)  
+    customers_carts[customer_id].append(cart_data)
+  return jsonify(customers_carts)
+  
+@app.route("/carts_by_customer/<customer_id>", methods=["GET"])
+def get_carts_by_customer_id(customer_id):
+  carts = Cart.query.filter_by(customer_id=customer_id).all()
+  customer_carts = []
+  for cart in carts:
+      cart_data = {
+        'cart_id': cart.id,
+        'customer_id': customer_id,
+        'items': []
+      }
+      for item in cart.items:
+          item_data = {
+            'product_id': item.product.id,
+            'name': item.product.name,
+            'price': item.product.price,
+            'quantity': item.quantity
+          }
+          cart_data['items'].append(item_data)
+      customer_carts.append(cart_data)
+  return jsonify(customer_carts)
+
+@app.route("/cart/<int:id>", methods=["DELETE"])
+def delete_cart(id):
+    cart = Cart.query.get_or_404(id)
+    cart_items = CartItem.query.get_or_404(id)
+    db.session.delete(cart_items)
+    db.session.delete(cart)
+    db.session.commit()
+    return jsonify({"message": "Cart deleted successfully"}), 200
+  
+@app.route("/cart/<int:cart_id>/item/<int:item_id>", methods=["DELETE"])
+def delete_cart_item(cart_id, item_id):
+    item = CartItem.query.filter_by(cart_id=cart_id, id=item_id).first_or_404()
+    db.session.delete(item)
+    db.session.commit()
+    return jsonify({"message": "Item deleted successfully"}), 200
+  
+@app.route("/cart/<int:cart_id>", methods=["PUT"])
+def update_cart(cart_id):
+    cart = Cart.query.get_or_404(cart_id)
+    data = request.get_json()
+    
+    for item_data in data.get('items', []):
+        item = CartItem.query.filter_by(cart_id=cart_id, product_id=item_data['product_id']).first()
+        if item:
+            item.quantity = item_data['quantity']
+    
+    db.session.commit()
+    return jsonify({"message": "Cart updated successfully"}), 200
+  
+  
 #------------------------------------------------------------------------
 #                         advanced lookups
 
