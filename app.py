@@ -9,7 +9,7 @@ from flask_cors import CORS
 # (myvenvalch)
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = 'mysql+mysqlconnector://root:$85PeopleDead94!@localhost/e_commerce_db'
+app.config["SQLALCHEMY_DATABASE_URI"] = 'mysql+mysqlconnector://root:password@localhost/e_commerce_db'
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 # giving acsess to our db from a website 'CORS'
