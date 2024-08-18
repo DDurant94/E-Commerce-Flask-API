@@ -20,6 +20,7 @@ colorama 0.4.6
 Flask 3.0.3
 flask-marshmallow 1.2.1
 Flask-SQLAlchemy 3.1.1
+Flask-Cors 4.0.1
 greenlet 3.0.3
 itsdangerous 2.2.0
 Jinja2 3.1.4
@@ -31,6 +32,7 @@ pip 24.0
 SQLAlchemy 2.0.30
 typing_extensions 4.11.0
 Werkzeug 3.0.3
+
 Database Configuration:
 
 The API connects to a MySQL database named e_commerce_db using MySQL Connector.
