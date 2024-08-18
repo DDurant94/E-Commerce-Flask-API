@@ -235,6 +235,14 @@ def get_orders():
   orders = Order.query.all()
   return ordered_many_schema.jsonify(orders)
 
+@app.route("/order/<int:id>",methods=["GET"])
+def get_one_order(id):
+  order = OrderedSchema.query.get_or_404(id)
+  if order:
+    return order_schema.jsonify(order)
+  else:
+    return jsonify({"message": "Customer Not Found"}),404
+
 @app.route("/orders/by_customer_id/<int:id>",methods=["GET"])
 def get_order_by_customer_id(id):
   customer_order = Order.query.filter_by(customer_id=id).all()
@@ -273,16 +281,14 @@ def get_order_id(id):
         }
         order_data['products'].append(product_data)
     return jsonify(order_data)
-  
+ 
 @app.route("/orders/<id>", methods=["PUT"])
 def update_order(id):
+    order = Order.query.get_or_404(id)
     try:
         order_data = order_schema.load(request.json)
     except ValidationError as err:
         return jsonify(err.messages), 400
-    order = Order.query.get_or_404(id)
-    order.order_date = order_data.get('order_date', order.order_date)
-    order.delivery_date = order_data.get('delivery_date', order.delivery_date)
     order.customer_id = order_data.get('customer_id', order.customer_id)
     db.session.execute(order_product.delete().where(order_product.c.order_id == id))
     for product_data in order_data["products"]:
@@ -306,7 +312,6 @@ def create_order():
       product_id = product_data["product_id"]
       quantity = product_data["quantity"]
       product = Product.query.get_or_404(product_id)
-      # Insert into the association table with quantity
       db.session.execute(order_product.insert().values(order_id=new_order.id, product_id=product.id, quantity=quantity))
       
   db.session.commit()
